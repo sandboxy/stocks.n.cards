@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "karma start karma.conf.js"
+    "test": "karma start karma.conf.js",
+    "start": "node ./app/app.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,5 +17,10 @@
     "karma": "^0.13.22",
     "karma-chrome-launcher": "^0.2.3",
     "karma-jasmine": "^0.3.8"
+  },
+  "dependencies": {
+    "express": "^4.13.4",
+    "morgan": "^1.7.0",
+    "path": "^0.12.7"
   }
 }

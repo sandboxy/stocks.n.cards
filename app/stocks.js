@@ -58,10 +58,10 @@ var getTradeTransactionsForUser = function getTradeTransactionsForUser(user) {
     'tim': ['2016-03-31,BUY,BSC',
       '2016-04-01,SELL,GOOG',
       '2016-04-02,SELL,GOOG',
-      '2016-04-03,SELL,YHOO',
+      '2016-04-03,BUY,YHOO',
       '2016-04-04,SELL,GOOG',
       '2016-04-05,BUY,YHOO',
-      '2016-04-06,BUY,YHOO',
+      '2016-04-06,SELL,YHOO',
       '2016-04-07,SELL,GOOG',
     ],
     'allen': [
@@ -79,7 +79,7 @@ var getTradeTransactionsForUser = function getTradeTransactionsForUser(user) {
       '2016-04-01,BUY,GOOG',
       '2016-04-02,SELL,YHOO',
       '2016-04-03,SELL,GOOG',
-      '2016-04-04,,YHOO',
+      '2016-04-04,SELL,YHOO',
       '2016-04-05,BUY,GOOG',
       '2016-04-06,BUY,YHOO',
       '2016-04-07,SELL,GOOG',
@@ -90,7 +90,6 @@ var getTradeTransactionsForUser = function getTradeTransactionsForUser(user) {
 };
 
 var getRankedListOfAlerts = function getRankedListOfAlerts(user) {
-
   //getTradeTransactionsForUser
   //getFriendsListForUser
   //this db is to keep track of each friend and their cumulative positions
@@ -187,12 +186,9 @@ var getRankedListOfAlerts = function getRankedListOfAlerts(user) {
 
   //create the resultingString thats sorted
   ///prolly good to create a netPosValue too, so that it's easier to access
-    //loop over the results array again?
-      //push netPosValue, netPos, stock to an array as a string
-      //sort the array by the netPosValue
-
-
-
+  //loop over the results array again?
+  //push netPosValue, netPos, stock to an array as a string
+  //sort the array by the netPosValue
 
 
   //after all this is done, we return the result.
@@ -201,11 +197,11 @@ var getRankedListOfAlerts = function getRankedListOfAlerts(user) {
   //then using those netPositions, i can come up with a netPosition for all myFriends which will be returned
   //return {'5,SELL,GOOG','4,BUY,YHOO'} //unsorted
 
-  return resultingArray;
+  return resultingArray.sort(function(a, b) {
+    return parseInt(b) - parseInt(a)
+  });
 
 
-
-  console.log(getNetTxType("gt"))
   //want a list of friends, with a new buyORsell for that week
   //then aggregate the buy/sell to come up with a new
   //now we have a unsorted list of trade transactions
@@ -219,9 +215,6 @@ var getRankedListOfAlerts = function getRankedListOfAlerts(user) {
   //return a list of alerts, ranked/sorted by netTxType.
   //['5,SELL,GOOG','4,BUY,YHOO']
   //theres a net of 5 people selling google
-
-
-
 };
 
 getRankedListOfAlerts("gt")
