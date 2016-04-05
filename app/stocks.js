@@ -60,8 +60,8 @@ var getTradeTransactionsForUser = function getTradeTransactionsForUser(user) {
       '2016-04-02,SELL,GOOG',
       '2016-04-03,SELL,YHOO',
       '2016-04-04,SELL,GOOG',
-      '2016-04-05,SELL,YHOO',
-      '2016-04-06,SELL,YHOO',
+      '2016-04-05,BUY,YHOO',
+      '2016-04-06,BUY,YHOO',
       '2016-04-07,SELL,GOOG',
     ],
     'allen': [
@@ -79,7 +79,7 @@ var getTradeTransactionsForUser = function getTradeTransactionsForUser(user) {
       '2016-04-01,BUY,GOOG',
       '2016-04-02,SELL,YHOO',
       '2016-04-03,SELL,GOOG',
-      '2016-04-04,SELL,YHOO',
+      '2016-04-04,,YHOO',
       '2016-04-05,BUY,GOOG',
       '2016-04-06,BUY,YHOO',
       '2016-04-07,SELL,GOOG',
@@ -91,105 +91,119 @@ var getTradeTransactionsForUser = function getTradeTransactionsForUser(user) {
 
 var getRankedListOfAlerts = function getRankedListOfAlerts(user) {
 
-  //return an array of friends with their ticker and netTxType. {gt:{google: netTxType}}
-  function getNetTxType(user) {
-    //getTradeTransactionsForUser
-    //getFriendsListForUser
-    //this db is to keep track of each friend and their cumulative positions
-    //format: {user:{stock: {buy:0, sell:0, netPos: something}}}
-    var db = {};
-    var result = {};
+  //getTradeTransactionsForUser
+  //getFriendsListForUser
+  //this db is to keep track of each friend and their cumulative positions
+  //format: {user:{stock: {buy:0, sell:0, netPos: something}}}
+  var db = {};
+  var result = {};
+  var resultingString = "";
+  var resultingArray = [];
 
-    var friendsList = getFriendsListForUser(user);
-    var friendsListLen = friendsList.length;
-    var friendsListLem = friendsList.length - 1;
+  var friendsList = getFriendsListForUser(user);
+  var friendsListLen = friendsList.length;
+  var friendsListLem = friendsList.length - 1;
 
-    //loop thru friendsList
-    for (var i = 0; i < friendsListLen; i++) {
-      var friend = friendsList[i];
-      var allTx = getTradeTransactionsForUser(friend);
-      var allTxLen = allTx.length;
-      var allTxLem = allTx.length - 1;
-      db[friend] = {};
+  //loop thru friendsList
+  for (var i = 0; i < friendsListLen; i++) {
+    var friend = friendsList[i];
+    var allTx = getTradeTransactionsForUser(friend);
+    var allTxLen = allTx.length;
+    var allTxLem = allTx.length - 1;
+    db[friend] = {};
 
-      //loop thru allTx for that friend
-      for (var j = 0; j < allTxLen; j++) {
-        //in each tx string, go thru and get the stock name and the txType
-        var txType = allTx[j].split(",")[1];
-        var stock = allTx[j].split(",")[2];
-        //if it doesnt exist, create it in the db
-        if (db[friend][stock] === undefined) {
-          db[friend][stock] = {};
-          db[friend][stock].BUY = 0;
-          db[friend][stock].SELL = 0;
-          db[friend][stock].txType = "";
-        }
-        //append the stockName and txType to a db and increment buy/sell
-        if (txType === "BUY") {
-          db[friend][stock].BUY += 1;
-        }
-        if (txType === "SELL") {
-          db[friend][stock].SELL += 1;
-        }
-
-        //then check to see which is greater, then reset the netPosForUser
-        if (db[friend][stock].BUY > db[friend][stock].SELL) {
-          db[friend][stock].txType = "BUY"
-        }
-        if (db[friend][stock].BUY < db[friend][stock].SELL) {
-          db[friend][stock].txType = "SELL"
-        }
-
-        //initialize the result.stock for future
-        if (!result[stock]) {
-          result[stock] = {};
-          result[stock].BUY = 0;
-          result[stock].SELL = 0;
-          result[stock].netPos = "";
-        }
-
+    //loop thru allTx for that friend
+    getTradeTransactionsForUser(friend).forEach(function(tx) {
+      //in each tx string, go thru and get the stock name and the txType
+      var txType = tx.split(",")[1];
+      var stock = tx.split(",")[2];
+      //if it doesnt exist, create it in the db
+      if (db[friend][stock] === undefined) {
+        db[friend][stock] = {};
+        db[friend][stock].BUY = 0;
+        db[friend][stock].SELL = 0;
+        db[friend][stock].txType = "";
+      }
+      //append the stockName and txType to a db and increment buy/sell
+      if (txType === "BUY") {
+        db[friend][stock].BUY += 1;
+      }
+      if (txType === "SELL") {
+        db[friend][stock].SELL += 1;
       }
 
+      //then check to see which is greater, then reset the netPosForUser
+      if (db[friend][stock].BUY > db[friend][stock].SELL) {
+        db[friend][stock].txType = "BUY"
+      }
+      if (db[friend][stock].BUY < db[friend][stock].SELL) {
+        db[friend][stock].txType = "SELL"
+      }
 
-      //now at this point, we have looped thru one the friends
-      //after populating the last friend,
-      if (i === friendsListLem) {
-        //we should check the db and find the netPos for our friends
-        for (var friend in db) {
-          for (var stock in db[friend]) {
-            var s = db[friend][stock];
-            if (s.txType === "SELL") {
-              result[stock].SELL += 1
-            }
-            if (s.txType === "BUY") {
-              result[stock].BUY += 1
-            }
+      //initialize the result.stock for future
+      if (!result[stock]) {
+        result[stock] = {};
+        result[stock].BUY = 0;
+        result[stock].SELL = 0;
+        result[stock].netPos = "";
+      }
+
+    });
+
+    //now at this point, we have looped thru one the friends
+    //after populating the last friend,
+    if (i === friendsListLem) {
+      //we should check the db and find the netPos for our friends
+      for (var friend in db) {
+        for (var stock in db[friend]) {
+          var s = db[friend][stock];
+          if (s.txType === "SELL") {
+            result[stock].SELL += 1
+          }
+          if (s.txType === "BUY") {
+            result[stock].BUY += 1
           }
         }
       }
-
-      for (var stock in result) {
-        if (result[stock].SELL > result[stock].BUY) {
-          result[stock].netPos = "SELL"
-        }
-        if (result[stock].SELL < result[stock].BUY) {
-          result[stock].netPos = "BUY"
-        }
-      }
-
-
-      //for each netPos in that stock, we increment result.stockname.SELL by 1 or result.stockname.BUY by 1.
-      //then compare which is greater. to change the result.stockname.netPos to Sell or Buy.
-
-      //after all this is done, we return the result.
     }
-    //in order to get 5, i need to get all the netPositions for each user&stock
-    //format: {user:{stock: {buy:0, sell:0, netPos: something}}}
-    //then using those netPositions, i can come up with a netPosition for all myFriends which will be returned
-    //return {'5,SELL,GOOG','4,BUY,YHOO'} //unsorted
-
-    return result;
   }
+
+  //populate the total netPosition.
+  for (var stock in result) {
+    //for each netPos in that stock, we increment result.stockname.SELL by 1 or result.stockname.BUY by 1.
+    if (result[stock].SELL > result[stock].BUY) {
+      //then compare which is greater. to change the result.stockname.netPos to Sell or Buy.
+      result[stock].netPos = "SELL"
+      result[stock].netPosValue = result[stock].SELL;
+    }
+    if (result[stock].SELL < result[stock].BUY) {
+      result[stock].netPos = "BUY"
+      result[stock].netPosValue = result[stock].BUY;
+    }
+    if (!!result[stock].netPosValue) {
+      resultingArray.push("" + result[stock].netPosValue + "," + result[stock].netPos + "," + stock);
+    }
+  }
+
+  //create the resultingString thats sorted
+  ///prolly good to create a netPosValue too, so that it's easier to access
+    //loop over the results array again?
+      //push netPosValue, netPos, stock to an array as a string
+      //sort the array by the netPosValue
+
+
+
+
+
+  //after all this is done, we return the result.
+  //in order to get 5, i need to get all the netPositions for each user&stock
+  //format: {user:{stock: {buy:0, sell:0, netPos: something}}}
+  //then using those netPositions, i can come up with a netPosition for all myFriends which will be returned
+  //return {'5,SELL,GOOG','4,BUY,YHOO'} //unsorted
+
+  return resultingArray;
+
+
 
   console.log(getNetTxType("gt"))
   //want a list of friends, with a new buyORsell for that week
