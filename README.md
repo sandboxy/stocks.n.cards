@@ -1,7 +1,2 @@
-This is a simple setup utilizing Karma and Jasmine to unit test your code.
-Place your code inside the app folder and your tests inside the tests folder.
+This is a simple stocks and cards game.
 
-
-#INSTRUCTIONS
-npm install
-npm test
